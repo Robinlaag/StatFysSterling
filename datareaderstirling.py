@@ -112,7 +112,7 @@ def getPower(path):
             
             area = np.zeros(len(cp)-1)
             for i in range(len(cp)-1):
-                area[i]=area[i]=(cp[i]*cv[i+1]-cp[i+1]*cv[i])/2
+                area[i]=(cp[i]*cv[i+1]-cp[i+1]*cv[i])/2
             ar.append(np.sum(area))
             
         ar=np.asarray(ar)

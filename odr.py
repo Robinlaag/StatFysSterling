@@ -2,6 +2,12 @@ import scipy.odr as odr
 import numpy as np
 import matplotlib.pyplot as plt
 
+try:
+    from mplstyler import makeMplStyle
+    makeMplStyle()
+    print('mpl styled')
+except ImportError:
+    pass
 
 x = np.array([0,1,2,3,4,5,6,7,8,9,10,11])
 sig_x = x*0+0.1
@@ -64,9 +70,10 @@ odr_res.pprint()
 # Hier plotten we ter controle de aanpassing met de dataset (niet opgemaakt)
 xplot=np.arange(-1,13,1)
 
-ax.errorbar(par_best[1]-x,y,xerr=sig_x,yerr=sig_y,fmt='k.',label="data")
-ax.plot(par_best[1]-xplot,f(par_best,xplot),'r-', label="model")
+ax.errorbar(par_best[1]-x,y,xerr=sig_x,yerr=sig_y,fmt='k.',label="Data")
+ax.plot(par_best[1]-xplot,f(par_best,xplot),'r-', label="Model")
 
-ax.set_xlabel("volume (ml)")
-ax.set_ylabel("voltage measured (V)")
-plt.savefig("pplot.pdf")
+ax.set_xlabel("Volume (ml)")
+ax.set_ylabel("Output voltage (V)")
+ax.legend()
+plt.savefig("images\pplot_f.pdf",dpi=300)

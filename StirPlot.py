@@ -21,7 +21,7 @@ except ImportError:
 D1 = np.asarray(getPower(r'S4/'))
 D2 = np.asarray(getPower(r'S5/'))
 Data = np.concatenate((D1,D2),axis=1)
-
+outliers = [0,1,2,3,43]
 
 T1 = D1[4,4:]-D1[5,4:]
 T2 = D1[5,4:]
@@ -49,7 +49,7 @@ def plot45():
     ax.set_xlabel('$n$ (rpm)')
     ax.set_ylabel('$P$ (W)')
     
-    ax.errorbar(Data[0],Data[1],fmt='.',label='External')
+    ax.errorbar(Data[0],Data[1],fmt='k.',label='External')
     #ax.errorbar(Data[0,:4],Data[1,:4],fmt='.')
     plt.savefig('images/S4S5-Pe.pdf',dpi=300)
     plt.show()
@@ -59,7 +59,7 @@ def plot45():
     ax.set_xlabel('$n$ (rpm)')
     ax.set_ylabel('$P$ (W)')
     
-    ax.errorbar(Data[0],Data[2],yerr=Data[3],fmt='.',label='Internal')
+    ax.errorbar(Data[0],Data[2],yerr=Data[3],fmt='k.',label='Internal')
     plt.savefig('images/S4S5-Pi.pdf',dpi=300)
     plt.show()
     
@@ -68,8 +68,9 @@ def plot45():
     ax.set_xlabel('$n$ (rpm)')
     ax.set_ylabel('$\eta$ $(P_e/P_i)$')
     
-    ax.errorbar(Data[0],Data[1]/Data[2],fmt='.',label='$P_e/P_i$')
-    
+    ax.errorbar(Data[0],Data[1]/Data[2],fmt='k.',label='$P_e/P_i$')
+    ax.errorbar(Data[0,outliers],Data[1,outliers]/Data[2,outliers],fmt='ro',label='External',markersize=9,fillstyle='none',zorder=-5)
+
     #ax.legend(bbox_to_anchor=(1.04,0.5), loc='center left', borderaxespad=0)
     
     plt.savefig('images/S4S5-n.pdf',dpi=300)
@@ -80,15 +81,23 @@ def plot45():
     ax.set_xlabel('$n$ (rpm)')
     
     
-    ax.errorbar(Data[0],Data[2],fmt='.',label='Internal')
+    ax.errorbar(Data[0],Data[2],fmt='o',label='Internal',markersize=3)
+    ax.errorbar(Data[0,outliers],Data[2,outliers],fmt='ro',label='External',markersize=9,fillstyle='none',zorder=-5)
+
     ax.set_ylabel('Internal Power (W)')
     ax2=ax.twinx()
-    ax2.errorbar(Data[0],Data[1],fmt='.',label='External',color=cycle[1])
+    ax2.errorbar(Data[0],Data[1],fmt='v',label='External',color=cycle[1],markersize=3.5)
+    ax2.errorbar(Data[0,outliers],Data[1,outliers],fmt='ro',label='External',markersize=9,fillstyle='none',zorder=-5)
+
     ax2.set_ylabel('External Power (W)')
     f.text(.2,.7,'External',fontsize=15,color=cycle[1],weight='bold')
     f.text(.4,.42,'Internal',fontsize=15,color=cycle[0],rotation=33,weight='bold')
     #ax.legend(bbox_to_anchor=(1.04,0.5), loc='center left', borderaxespad=0)
     #f.legend(bbox_to_anchor=(.1,.93),loc="upper left")
+    ax2.spines['right'].set_visible(False)
+    ax2.spines['top'].set_visible(False)
+    ax2.spines['left'].set_visible(False)
+    ax2.spines['bottom'].set_visible(False)
     
     plt.savefig('images/S4S5-PePiscaled1.pdf',dpi=300)
     plt.show()
