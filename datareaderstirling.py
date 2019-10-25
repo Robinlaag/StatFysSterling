@@ -9,13 +9,15 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+# tries to import mpl styling function.
 try:
     from mplstyler import makeMplStyle
     makeMplStyle()
     print('mpl styled')
 except ImportError:
     pass
-    
+
+# main functions, takes in directory path of data folders.
 def getPower(path):
     # change to directory of data files
     dirpath = path
@@ -34,8 +36,9 @@ def getPower(path):
     for i in range(0,nSets):
         fnames.append("ALL{:04d}/F{:04d}".format(i,i))
     
-    data1_Arr = []
-    data2_Arr = []
+    # empty lists to append data to
+    data1_Arr = [] # pressure
+    data2_Arr = [] # volume
     
     # reads all the p,v data from each dataset
     for fn in fnames:
@@ -46,9 +49,11 @@ def getPower(path):
         with open(file+'CH2.CSV', 'r') as f:
             data2_Arr.append(np.genfromtxt(f,delimiter=',', usecols=4))
     
-    
-    # the channels were switched around for measurements data_M
-    
+    '''
+    On occasion the voltages recorded by the oscilloscope were negative.
+    We take the absolute value of the voltage to prevent this from affecting
+    the rest of the calculations.
+    '''
     data1_Ar = np.abs(np.asarray(data1_Arr))
     data2_Ar = np.abs(np.asarray(data2_Arr))
     
@@ -67,14 +72,7 @@ def getPower(path):
     ax2.plot(data1_Ar[3],'r')
     ax2.tick_params(axis='y', colors='red')
     plt.show()
-    '''
-    for px,vy,i in zip(data1_Ar,data2_Ar,range(0,len(data1_Ar))):
-        plt.plot(px,vy)
-        plt.ylabel('$V$ (ml)')
-        plt.xlabel('$p$ (hPa)')
-        plt.savefig('images/P-V-meting{}{}.pdf'.format(i,'Session1M'),dpi=300)
-        plt.show()
-    '''
+    
     # converts pressure array from hPa to Pa
     data1_Ar = data1_Ar*100
     # converts volume array from cm^3 to m^3
@@ -86,12 +84,14 @@ def getPower(path):
     def findcycles(p,v):
         zerosindex = np.where(np.diff(np.sign(p)))[0]
         th = 10
-        
+        # deletes all the zero indexes that are too close.
         zerosindex = np.delete(zerosindex, np.argwhere(np.ediff1d(zerosindex)<th)+1)
         length = len(zerosindex)-1
         fi = np.arange(0,length-(length%2),2)
         si = fi.copy() + 2
         
+        # returns the indeces for the beginning and end of every cycle
+        # and the number of cycles = len(fi)
         return zerosindex[fi], zerosindex[si], len(fi)
     
     
@@ -101,14 +101,19 @@ def getPower(path):
         v -= np.mean(v)
         
         first_i, second_i, ncycles = findcycles(p,v)
-        # tlen = second_i[-1]-first_i[0]
+        
+        # calculates the sum of time elapsed for each cycle
         tlen = np.sum(second_i-first_i)
+        
         ar=[]
+        
+        # loop over all cycles
         for fi,si in zip(first_i,second_i):
             cp = np.copy(p[fi:si])
             cv = np.copy(v[fi:si])
             
             area = np.zeros(len(cp)-1)
+            # calculates the area of the cycle
             for i in range(len(cp)-1):
                 area[i]=(cp[i]*cv[i+1]-cp[i+1]*cv[i])/2
             ar.append(np.sum(area))
@@ -118,8 +123,10 @@ def getPower(path):
         area_Ar.append([ar.mean(),ar.std(),ncycles,tlen])
     
     area_Ar = np.asarray(area_Ar)
-    Pi = area_Ar[:,0]*area_Ar[:,2]/(area_Ar[:,3]*0.0002)
-    sPi = area_Ar[:,1]*area_Ar[:,2]/(area_Ar[:,3]*0.0002)
+    Pi = area_Ar[:,0]*area_Ar[:,2]/(area_Ar[:,3]*0.0002) # internal power
+    sPi = area_Ar[:,1]*area_Ar[:,2]/(area_Ar[:,3]*0.0002) # std of internal power
+    
+    # opens data file
     with open(dirpath+'Data.csv','r') as f:    
         Data_ar = np.genfromtxt(f,delimiter=',')
     
@@ -132,41 +139,3 @@ def getPower(path):
     
     # n, Pe, Pi, sig_pi, DT, T2, time(min.sec)
     return (Data_ar[:,2],Pe,Pi,sPi,Data_ar[:,3],Data_ar[:,4],Data_ar[:,1])
-
-'''
-f, ax = plt.subplots()
-
-ax.errorbar(Data_ar[:,2],Pi,fmt='.',label='Internal')
-ax.errorbar(Data_ar[:,2],Pe,fmt='.',label='External')
-ax.set_xlabel('$n$ (rpm)')
-ax.set_ylabel('$P$ (W)')
-ax.legend(bbox_to_anchor=(1.04,0.5), loc="center left", borderaxespad=0)
-plt.savefig('images/PiPe-{}{}.pdf'.format(load,dirpath[:1]),dpi=300)
-plt.show()
-
-f, ax = plt.subplots()
-
-ax.errorbar(Data_ar[:,2],Pe,fmt='.',label='External')
-ax.set_xlabel('$n$ (rpm)')
-ax.set_ylabel('$P$ (W)')
-plt.savefig('images/Pe-{}{}.pdf'.format(load,dirpath[:1]),dpi=300)
-plt.show()
-
-f, ax = plt.subplots()
-
-ax.errorbar(Data_ar[:,2],Pi,fmt='.',label='Internal')
-ax.set_xlabel('$n$ (rpm)')
-ax.set_ylabel('$P$ (W)')
-plt.savefig('images/Pi-{}{}.pdf'.format(load,dirpath[:1]),dpi=300)
-plt.show()
-
-
-f, ax = plt.subplots()
-
-ax.errorbar(Data_ar[:,2],Pe/Pi,fmt='.',label='Internal')
-ax.set_xlabel('$n$ (rpm)')
-ax.set_ylabel('$\eta$')
-plt.savefig('images/PeDIVPi-{}{}.pdf'.format(load,dirpath[:1]),dpi=300)
-plt.show()
-'''
-
