@@ -82,7 +82,6 @@ def getPower(path):
     
     area_Ar = []
     
-    
     # function to find the beginning and end of every full cycle in the data set
     def findcycles(p,v):
         zerosindex = np.where(np.diff(np.sign(p)))[0]
@@ -94,7 +93,9 @@ def getPower(path):
         si = fi.copy() + 2
         
         return zerosindex[fi], zerosindex[si], len(fi)
-        
+    
+    dp = 10
+    dv = 0
     
     for p,v in zip(data1_Ar,data2_Ar):
         # centers (p,v) around (0,0)
@@ -111,15 +112,16 @@ def getPower(path):
             
             area = np.zeros(len(cp)-1)
             for i in range(len(cp)-1):
-                area[i]=(cp[i]*cv[i+1]-cp[i+1]*cv[i])/2
+                area[i]=area[i]=(cp[i]*cv[i+1]-cp[i+1]*cv[i])/2
             ar.append(np.sum(area))
             
         ar=np.asarray(ar)
+        
         area_Ar.append([ar.mean(),ar.std(),ncycles,tlen])
     
     area_Ar = np.asarray(area_Ar)
     Pi = area_Ar[:,0]*area_Ar[:,2]/(area_Ar[:,3]*0.0002)
-    
+    sPi = area_Ar[:,1]*area_Ar[:,2]/(area_Ar[:,3]*0.0002)
     with open(dirpath+'Data.csv','r') as f:    
         Data_ar = np.genfromtxt(f,delimiter=',')
     
@@ -130,8 +132,8 @@ def getPower(path):
         load = 'mech'
         Pe = Data_ar[:,-1]/1000*Data_ar[:,2]/60*(2*np.pi)
     
-    
-    return (Data_ar[:,2],Pe,Pi)
+    # n, Pe, Pi, sig_pi, DT, T2, time(min.sec)
+    return (Data_ar[:,2],Pe,Pi,sPi,Data_ar[:,3],Data_ar[:,4],Data_ar[:,1])
 
 '''
 f, ax = plt.subplots()
