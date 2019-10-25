@@ -26,6 +26,14 @@ outliers = [0,1,2,3,43]
 T1 = D1[4,4:]-D1[5,4:]
 T2 = D1[5,4:]
 
+x = np.delete(Data[0],outliers,0)
+y = np.delete(Data[2],outliers,0)
+
+xs = np.linspace(x.min(),x.max(),len(x))
+x = x[:,np.newaxis]
+a, _, _, _ = np.linalg.lstsq(x,y,rcond=None)
+print('P_i = n*{}'.format(a[0]))
+
 
 def plot45():
     cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
@@ -60,6 +68,7 @@ def plot45():
     ax.set_ylabel('$P$ (W)')
     
     ax.errorbar(Data[0],Data[2],yerr=Data[3],fmt='k.',label='Internal')
+    ax.plot(xs,a*xs,'r-')
     plt.savefig('images/S4S5-Pi.pdf',dpi=300)
     plt.show()
     
@@ -70,7 +79,6 @@ def plot45():
     
     ax.errorbar(Data[0],Data[1]/Data[2],fmt='k.',label='$P_e/P_i$')
     ax.errorbar(Data[0,outliers],Data[1,outliers]/Data[2,outliers],fmt='ro',label='External',markersize=9,fillstyle='none',zorder=-5)
-
     #ax.legend(bbox_to_anchor=(1.04,0.5), loc='center left', borderaxespad=0)
     
     plt.savefig('images/S4S5-n.pdf',dpi=300)
@@ -83,7 +91,14 @@ def plot45():
     
     ax.errorbar(Data[0],Data[2],fmt='o',label='Internal',markersize=3)
     ax.errorbar(Data[0,outliers],Data[2,outliers],fmt='ro',label='External',markersize=9,fillstyle='none',zorder=-5)
-
+    ax.plot(xs,a*xs,'k--',label='Model')
+    
+    p1 = ax.transData.transform_point((xs[0], a[0]*xs[0]))
+    p2 = ax.transData.transform_point((xs[1], a[0]*xs[1]))
+    dy = (p2[1] - p1[1])
+    dx = (p2[0] - p1[0])
+    rotn = np.degrees(np.arctan2(dy, dx))
+    
     ax.set_ylabel('Internal Power (W)')
     ax2=ax.twinx()
     ax2.errorbar(Data[0],Data[1],fmt='v',label='External',color=cycle[1],markersize=3.5)
@@ -91,7 +106,8 @@ def plot45():
 
     ax2.set_ylabel('External Power (W)')
     f.text(.2,.7,'External',fontsize=15,color=cycle[1],weight='bold')
-    f.text(.4,.42,'Internal',fontsize=15,color=cycle[0],rotation=33,weight='bold')
+    
+    f.text(.4,.43,'Internal',fontsize=15,color=cycle[0],rotation=rotn,weight='bold')
     #ax.legend(bbox_to_anchor=(1.04,0.5), loc='center left', borderaxespad=0)
     #f.legend(bbox_to_anchor=(.1,.93),loc="upper left")
     ax2.spines['right'].set_visible(False)

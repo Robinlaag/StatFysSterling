@@ -94,8 +94,6 @@ def getPower(path):
         
         return zerosindex[fi], zerosindex[si], len(fi)
     
-    dp = 10
-    dv = 0
     
     for p,v in zip(data1_Ar,data2_Ar):
         # centers (p,v) around (0,0)
